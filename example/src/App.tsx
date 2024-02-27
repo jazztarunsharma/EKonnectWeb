@@ -29,7 +29,8 @@ const App: React.FunctionComponent = () => {
               rtcProps={{
                 appId: '53b8bd0b87184b1fa73c2f2d7ba88a20',
                 channel: 'Tarun',
-                token: '007eJxTYDhUcEqpwW1moNyuHwvu9C9Lavfqb5mSX5h6kXWL+JfGn0IKDKbGSRZJKQZJFuaGFiZJhmmJ5sbJRmlGKeZJiRYWiUYG5QmXUxsCGRk23d7BwAiFID4rQ0hiUWkeAwMA2sghww==', // add your token if using app in secured mode
+                token:
+                  '007eJxTYDhTnRTFdKJ4e/PPQ1MDp67NU2ySUEpKefCtPTfEeZaD7WEFBlPjJIukFIMkC3NDC5Mkw7REc+NkozSjFPOkRAuLRCMDqaA7qQ2BjAwSTwuZGBkgEMRnZQhJLCrNY2AAAHUYH6Y=', // use null or skip if using app in testing mode
                 role: isHost ? 'host' : 'audience',
                 layout: isPinned ? layout.pin : layout.grid,
                 enableScreensharing: true
