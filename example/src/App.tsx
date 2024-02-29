@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import AgoraUIKit, { layout } from 'agora-react-uikit'
 import 'agora-react-uikit/dist/index.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -9,17 +9,79 @@ const App: React.FunctionComponent = () => {
   const [isCallEnded, setIsCallEnded] = useState(false)
   const [isHost, setHost] = useState(true)
   const [isPinned, setPinned] = useState(false)
-  const [customerName, setCustomerName] = useState('')
+  const [username, setUserName] = useState('')
   const [customerMobile, setCustomerMobile] = useState('')
   const [email, setEmail] = useState('')
   const [pinCode, setPinCode] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
 
-  const handleStartCall = () => {
+  useEffect(() => {
+    const applyStylesToVideoElements = () => {
+      const videoElements =
+        document.getElementsByClassName('agora_video_player')
+      Array.from(videoElements).forEach((element) => {
+        const videoElement = element as HTMLElement // Explicitly cast to HTMLElement
+        videoElement.style.position = 'relative'
+        // Add more styles as needed
+      })
+    }
+    // Create a MutationObserver instance
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          // If new nodes are added to the DOM, check if they are video elements
+          applyStylesToVideoElements()
+        }
+      })
+    })
+
+    // Start observing mutations in the document body
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    // Cleanup function to disconnect the observer when the component unmounts
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
+
+  const handleStartCall = async () => {
     // Validate input fields
-    if (customerName.trim() !== '' && !isCallStarted && validateInputFields()) {
-      setIsCallStarted(true)
-    } else if (customerName.trim() === '') {
+    if (username.trim() !== '' && !isCallStarted && validateInputFields()) {
+      const formData = {
+        customerName: username,
+        customerMobile: customerMobile,
+        email: email,
+        pinCode: pinCode,
+        selectedCategory: selectedCategory
+      }
+
+      try {
+        // Make a POST request to your .NET Core API endpoint
+        const response = await fetch('http://localhost:38375/api/Call', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        })
+
+        if (response.ok) {
+          setIsCallStarted(true)
+          // Handle success
+        } else {
+          // Handle error
+          throw new Error('Failed to start the call')
+        }
+      } catch (error) {
+        console.error(error)
+        // Handle error
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Failed to start the call. Please try again later.'
+        })
+      }
+    } else if (username.trim() === '') {
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
@@ -35,7 +97,7 @@ const App: React.FunctionComponent = () => {
   const validateInputFields = () => {
     // Basic validation, can be extended
     if (
-      customerName.trim() === '' ||
+      username.trim() === '' ||
       customerMobile.trim() === '' ||
       email.trim() === '' ||
       pinCode.trim() === '' ||
@@ -88,7 +150,7 @@ const App: React.FunctionComponent = () => {
       </header>
 
       <div className='row justify-content-center'>
-        <div className='col-md-6'>
+        <div className='col-md-7'>
           <h1 className='text-center mb-4'>SDS Demo Video Call</h1>
           {!isCallEnded && isCallStarted && (
             <>
@@ -111,13 +173,13 @@ const App: React.FunctionComponent = () => {
                   appId: '53b8bd0b87184b1fa73c2f2d7ba88a20',
                   channel: 'Tarun',
                   token:
-                    '007eJxTYNg/saxUfVdFtKj6h4zkxzE9nxrrLu4UKD9zkzV9Sn2gf6QCg6lxkkVSikGShbmhhUmSYVqiuXGyUZpRinlSooVFopFB8pp7qQ2BjAyu3aZMjAwQCOKzMoQkFpXmMTAAAIl9IAk=', // use null or skip if using app in testing mode
+                    '007eJxTYJjzLUty3sWFrNNr9V8dePxj+iWLZMnoRanHfqfMz1vy8OlLBQZT4ySLpBSDJAtzQwuTJMO0RHPjZKM0oxTzpEQLi0Qjg4kN91MbAhkZNp8OZmCEQhCflSEksag0j4EBAJCWI/w=', // use null or skip if using app in testing mode
                   role: isHost ? 'host' : 'audience',
                   layout: isPinned ? layout.pin : layout.grid,
                   enableScreensharing: true
                 }}
                 rtmProps={{
-                  username: customerName || 'user',
+                  username: username || 'user',
                   displayUsername: true
                 }}
                 callbacks={{
@@ -132,16 +194,16 @@ const App: React.FunctionComponent = () => {
           {!isCallStarted && !isCallEnded && (
             <>
               <div className='mb-3'>
-                <label htmlFor='customerName' className='form-label'>
+                <label htmlFor='username' className='form-label'>
                   Customer Name
                 </label>
                 <input
                   type='text'
                   className='form-control'
-                  id='customerName'
+                  id='username'
                   maxLength={50}
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUserName(e.target.value)}
                 />
               </div>
               <div className='mb-3'>
